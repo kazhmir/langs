@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# assembly link and run
+nasm -felf64 ./$1 -o ./out.o
+if [ -f ./out.o ]; then
+	ld ./out.o -o ./beep
+	if [ -f ./beep ]; then
+		./beep $2 $3 $4 $5 $6
+	fi
+fi
+
+echo $?
+
+rm -f ./beep ./out.o
