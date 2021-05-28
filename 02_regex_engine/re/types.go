@@ -62,8 +62,19 @@ func (st *state) addTr(set *Set, next *state) {
 }
 
 type Set struct {
-	Items   []rune
+	Items   map[rune]struct{}
 	Negated bool
+}
+
+func NewSet(s string, n bool) *Set {
+	out := &Set{
+		Items:   make(map[rune]struct{}, len(s)),
+		Negated: n,
+	}
+	for _, r := range s {
+		out.Items[r] = struct{}{}
+	}
+	return out
 }
 
 func (s *Set) String() string {
@@ -71,7 +82,12 @@ func (s *Set) String() string {
 	if s.Negated {
 		val = "not"
 	}
-	return val + `"` + string(s.Items) + `"`
+	items := runeSlice{}
+	for c := range s.Items {
+		items = append(items, c)
+	}
+	sort.Sort(&items)
+	return fmt.Sprintf("%v\"%v\"", val, string(items))
 }
 
 /*
@@ -80,24 +96,9 @@ it'll invert the result of the binary search. This is why
 here we always return tr.Negated or !tr.Negated. Contains becomes not contains.
 */
 func (s *Set) Contains(c rune) bool {
-	bot, top := 0, len(s.Items)-1
-	if len(s.Items) == 0 || c < s.Items[bot] || c > s.Items[top] {
-		return s.Negated
-	}
-	var curr rune
-	var mid int
-	for bot <= top {
-		mid = int((top + bot) / 2)
-		curr = s.Items[mid]
-		if c == curr {
-			return !s.Negated
-		}
-		if c < curr {
-			top = mid - 1
-		}
-		if c > curr {
-			bot = mid + 1
-		}
+	_, ok := s.Items[c]
+	if ok {
+		return !s.Negated
 	}
 	return s.Negated
 }
@@ -105,43 +106,46 @@ func (s *Set) Contains(c rune) bool {
 func (s *Set) rm(other *Set) {
 	switch true {
 	case s.Negated && other.Negated:
-		s.Items = exclude(s.Items, other.Items)
+		s.Items = setDifference(other.Items, s.Items) // [^a] - [^b] = [b]
 		s.Negated = false
 	case s.Negated && !other.Negated:
-		s.Items = addIfAny(s.Items, other.Items)
+		s.Items = union(s.Items, other.Items) // [^a] - [b] = [^ab]
 	case !s.Negated && other.Negated:
-		s.Items = intersect(s.Items, other.Items)
+		s.Items = intersection(s.Items, other.Items) // [a] - [^b] = []
 	case !s.Negated && !other.Negated:
-		s.Items = rmIfAny(s.Items, other.Items)
+		s.Items = setDifference(s.Items, other.Items) // [a] - [b] = [a]
 	}
 }
 
 func (s *Set) intersect(other *Set) *Set {
-	out := &Set{Items: []rune{}}
+	out := NewSet("", false)
 	switch true {
 	case s.Negated && other.Negated:
-		out.Items = addIfAny(s.Items, other.Items)
+		out.Items = union(s.Items, other.Items) // [^a] ∩ [^b] = [^ab]
 		out.Negated = true
 	case s.Negated && !other.Negated:
-		out.Items = exclude(s.Items, other.Items)
+		out.Items = setDifference(other.Items, s.Items) // [^a] ∩ [b] = [b]
 	case !s.Negated && other.Negated:
-		out.Items = exclude(other.Items, s.Items)
+		out.Items = setDifference(s.Items, other.Items) // [a] ∩ [^b] = [a]
 	case !s.Negated && !other.Negated:
-		out.Items = intersect(s.Items, other.Items)
+		out.Items = intersection(s.Items, other.Items) // [a] ∩ [b] = []
 	}
 	return out
 }
 
-// TODO: this code doesn't work if the Other is negated
 func (s *Set) add(other *Set) {
-	if s.Negated {
-		s.Items = rmIfAny(other.Items, s.Items)
-	} else {
-		s.Items = append(s.Items, other.Items...)
-		rSet := runeSlice(s.Items)
-		rSet = rmDuplicates(rSet)
-		sort.Sort(&rSet)
-		s.Items = rSet
+	switch true {
+	case s.Negated && other.Negated:
+		s.Items = intersection(s.Items, other.Items) // [^a] ∪ [^b] = [^];	[^a] ∪ [^a] = [^a]; 	[^a] ∪ [^ab] = [^a];
+		s.Negated = true
+	case s.Negated && !other.Negated:
+		s.Items = setDifference(other.Items, s.Items) // [^a] ∪ [b] = [^a];	 [^a] ∪ [a] = [^];
+		s.Negated = true
+	case !s.Negated && other.Negated:
+		s.Items = setDifference(s.Items, other.Items) // [a] ∪ [^b] = [^b];	 [a] ∪ [^a] = [^];
+		s.Negated = true
+	case !s.Negated && !other.Negated:
+		s.Items = union(s.Items, other.Items) // [a] ∪ [b] = [ab];	 [a] ∪ [a] = [a];
 	}
 }
 

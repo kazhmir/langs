@@ -13,7 +13,7 @@ var tests = []struct {
 			{val: eof, tp: end},
 		},
 		&node{
-			set: &Set{Items: []rune{'a'}},
+			set: NewSet("a", false),
 			tp:  set,
 		},
 		"abAbaa",
@@ -27,7 +27,7 @@ var tests = []struct {
 			{val: eof, tp: end},
 		},
 		&node{
-			set: &Set{Items: []rune{'a'}},
+			set: NewSet("a", false),
 			tp:  set,
 		},
 		"a",
@@ -43,9 +43,9 @@ var tests = []struct {
 		&node{
 			tp: and,
 			children: []*node{
-				{set: &Set{Items: []rune("a")}, tp: set},
-				{set: &Set{Items: []rune("b")}, tp: set},
-				{set: &Set{Items: []rune("c")}, tp: set},
+				{set: NewSet("a", false), tp: set},
+				{set: NewSet("b", false), tp: set},
+				{set: NewSet("c", false), tp: set},
 			},
 		},
 		"aaaaaabcaaabac",
@@ -62,9 +62,9 @@ var tests = []struct {
 		&node{
 			tp: and,
 			children: []*node{
-				{set: &Set{Items: []rune(" ")}, tp: set},
-				{set: &Set{Items: []rune("\t")}, tp: set},
-				{set: &Set{Items: []rune("\n")}, tp: set},
+				{set: NewSet(" ", false), tp: set},
+				{set: NewSet("\t", false), tp: set},
+				{set: NewSet("\n", false), tp: set},
 			},
 		},
 		"aaaa\ta\n aaa \t\n",
@@ -82,9 +82,9 @@ var tests = []struct {
 		&node{
 			tp: or,
 			children: []*node{
-				{set: &Set{Items: []rune("a")}, tp: set},
-				{set: &Set{Items: []rune("b")}, tp: set},
-				{set: &Set{Items: []rune("c")}, tp: set},
+				{set: NewSet("a", false), tp: set},
+				{set: NewSet("b", false), tp: set},
+				{set: NewSet("c", false), tp: set},
 			},
 		},
 		"azzzbczzzbza",
@@ -105,15 +105,15 @@ var tests = []struct {
 				{
 					tp: and,
 					children: []*node{
-						{set: &Set{Items: []rune("a")}, tp: set},
-						{set: &Set{Items: []rune("b")}, tp: set},
+						{set: NewSet("a", false), tp: set},
+						{set: NewSet("b", false), tp: set},
 					},
 				},
 				{
 					tp: and,
 					children: []*node{
-						{set: &Set{Items: []rune("a")}, tp: set},
-						{set: &Set{Items: []rune("c")}, tp: set},
+						{set: NewSet("a", false), tp: set},
+						{set: NewSet("c", false), tp: set},
 					},
 				},
 			},
@@ -129,7 +129,7 @@ var tests = []struct {
 		&node{
 			tp: star,
 			children: []*node{
-				{set: &Set{Items: []rune{'a'}}, tp: set},
+				{set: NewSet("a", false), tp: set},
 			},
 		},
 		"aaaabc",
@@ -145,11 +145,11 @@ var tests = []struct {
 		&node{
 			tp: and,
 			children: []*node{
-				{set: &Set{Items: []rune{'a'}}, tp: set},
+				{set: NewSet("a", false), tp: set},
 				{
 					tp: star,
 					children: []*node{
-						{set: &Set{Items: []rune{'b'}}, tp: set},
+						{set: NewSet("b", false), tp: set},
 					},
 				},
 			},
@@ -171,13 +171,13 @@ var tests = []struct {
 				{
 					tp: star,
 					children: []*node{
-						{set: &Set{Items: []rune{'a'}}, tp: set},
+						{set: NewSet("a", false), tp: set},
 					},
 				},
 				{
 					tp: star,
 					children: []*node{
-						{set: &Set{Items: []rune{'b'}}, tp: set},
+						{set: NewSet("b", false), tp: set},
 					},
 				},
 			},
@@ -196,11 +196,11 @@ var tests = []struct {
 		&node{
 			tp: or,
 			children: []*node{
-				{set: &Set{Items: []rune{'a'}}, tp: set},
+				{set: NewSet("a", false), tp: set},
 				{
 					tp: star,
 					children: []*node{
-						{set: &Set{Items: []rune{'b'}}, tp: set},
+						{set: NewSet("b", false), tp: set},
 					},
 				},
 			},
@@ -228,13 +228,13 @@ var tests = []struct {
 						{
 							tp: or,
 							children: []*node{
-								{set: &Set{Items: []rune{'a'}}, tp: set},
-								{set: &Set{Items: []rune{'b'}}, tp: set},
+								{set: NewSet("a", false), tp: set},
+								{set: NewSet("b", false), tp: set},
 							},
 						},
 					},
 				},
-				{set: &Set{Items: []rune{'c'}}, tp: set},
+				{set: NewSet("c", false), tp: set},
 			},
 		},
 		"acaacbbcbcc",
@@ -249,7 +249,7 @@ var tests = []struct {
 			{val: ']', tp: ope},
 			{val: eof, tp: end},
 		},
-		&node{set: &Set{Items: []rune("abcdefghijklmnopqrstuvwxyz")}, tp: set},
+		&node{set: NewSet("abcdefghijklmnopqrstuvwxyz", false), tp: set},
 		"abcdZABC",
 		[]string{"a", "b", "c", "d"},
 	},
@@ -262,7 +262,7 @@ var tests = []struct {
 			{val: ']', tp: ope},
 			{val: eof, tp: end},
 		},
-		&node{set: &Set{Items: []rune("\n\t ")}, tp: set},
+		&node{set: NewSet("\n\t ", false), tp: set},
 		"aaaa\taaaa\n a a \n",
 		[]string{"\t", "\n", " ", " ", " ", "\n"},
 	},
@@ -284,8 +284,8 @@ var tests = []struct {
 		&node{
 			tp: or,
 			children: []*node{
-				{set: &Set{Items: []rune("abcdefghijklmnopqrstuvwxyz")}, tp: set},
-				{set: &Set{Items: []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")}, tp: set},
+				{set: NewSet("abcdefghijklmnopqrstuvwxyz", false), tp: set},
+				{set: NewSet("ABCDEFGHIJKLMNOPQRSTUVWXYZ", false), tp: set},
 			},
 		},
 		"aAbBcC",
@@ -309,11 +309,11 @@ var tests = []struct {
 		&node{
 			tp: and,
 			children: []*node{
-				{set: &Set{Items: []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")}, tp: set},
+				{set: NewSet("ABCDEFGHIJKLMNOPQRSTUVWXYZ", false), tp: set},
 				{
 					tp: star,
 					children: []*node{
-						{set: &Set{Items: []rune("abcdefghijklmnopqrstuvwxyz")}, tp: set},
+						{set: NewSet("abcdefghijklmnopqrstuvwxyz", false), tp: set},
 					},
 				},
 			},
@@ -336,11 +336,11 @@ var tests = []struct {
 		&node{
 			tp: and,
 			children: []*node{
-				{set: &Set{Items: []rune(" ")}, tp: set},
+				{set: NewSet(" ", false), tp: set},
 				{
 					tp: star,
 					children: []*node{
-						{set: &Set{Items: []rune(" abcdefghijklmnopqrstuvwxyz")}, tp: set},
+						{set: NewSet(" abcdefghijklmnopqrstuvwxyz", false), tp: set},
 					},
 				},
 			},
@@ -362,8 +362,8 @@ var tests = []struct {
 		&node{
 			tp: or,
 			children: []*node{
-				{set: &Set{Items: []rune("a")}, tp: set},
-				{set: &Set{Items: []rune("c")}, tp: set},
+				{set: NewSet("a", false), tp: set},
+				{set: NewSet("c", false), tp: set},
 			},
 		},
 		"aaacc",
@@ -384,11 +384,11 @@ var tests = []struct {
 		&node{
 			tp: and,
 			children: []*node{
-				{set: &Set{Items: []rune("a")}, tp: set},
+				{set: NewSet("a", false), tp: set},
 				{
 					tp: star,
 					children: []*node{
-						{set: &Set{Items: []rune("abcdefghijklmnopqrstuvwxyz"), Negated: true}, tp: set},
+						{set: NewSet("abcdefghijklmnopqrstuvwxyzc", true), tp: set},
 					},
 				},
 			},
@@ -411,11 +411,11 @@ var tests = []struct {
 		&node{
 			tp: and,
 			children: []*node{
-				{set: &Set{Items: []rune("a")}, tp: set},
+				{set: NewSet("a", false), tp: set},
 				{
 					tp: star,
 					children: []*node{
-						{set: &Set{Items: []rune("^abcdefghijklmnopqrstuvwxyz")}, tp: set},
+						{set: NewSet("^abcdefghijklmnopqrstuvwxyz", false), tp: set},
 					},
 				},
 			},
@@ -433,7 +433,7 @@ var tests = []struct {
 		&node{
 			tp: or,
 			children: []*node{
-				{set: &Set{Items: []rune("a")}, tp: set},
+				{set: NewSet("a", false), tp: set},
 				{tp: emptyStr},
 			},
 		},
@@ -451,8 +451,8 @@ var tests = []struct {
 		&node{
 			tp: or,
 			children: []*node{
-				{set: &Set{Items: []rune("a")}, tp: set},
-				{set: &Set{Items: []rune{}}, tp: set},
+				{set: NewSet("a", false), tp: set},
+				{set: NewSet("", false), tp: set},
 			},
 		},
 		"abbaab",
@@ -476,11 +476,11 @@ var tests = []struct {
 				{
 					tp: star,
 					children: []*node{
-						{set: &Set{Items: []rune("abcdefghijklmnopqrstuvwxyz")}, tp: set},
+						{set: NewSet("abcdefghijklmnopqrstuvwxyz", false), tp: set},
 					},
 				},
-				{set: &Set{Items: []rune(" ")}, tp: set},
-				{set: &Set{Items: []rune("*")}, tp: set},
+				{set: NewSet(" ", false), tp: set},
+				{set: NewSet("*", false), tp: set},
 			},
 		},
 		" *ab *baab",
@@ -510,8 +510,8 @@ var tests = []struct {
 				{
 					tp: or,
 					children: []*node{
-						{set: &Set{Items: []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")}, tp: set},
-						{set: &Set{Items: []rune("abcdefghijklmnopqrstuvwxyz")}, tp: set},
+						{set: NewSet("ABCDEFGHIJKLMNOPQRSTUVWXYZ", false), tp: set},
+						{set: NewSet("abcdefghijklmnopqrstuvwxyz", false), tp: set},
 					},
 				},
 			},
@@ -525,7 +525,7 @@ var tests = []struct {
 			{val: eof, tp: end},
 		},
 		&node{
-			set: &Set{Items: []rune("\uFFFF")},
+			set: NewSet("\uFFFF", false),
 			tp:  set,
 		},
 		"\uFFFFabc",
@@ -543,8 +543,8 @@ var tests = []struct {
 		&node{
 			tp: and,
 			children: []*node{
-				{set: &Set{Items: []rune("\uFFFF")}, tp: set},
-				{set: &Set{Items: []rune("\u0000\u0001\u0002\u0003\u0004")}, tp: set},
+				{set: NewSet("\uFFFF", false), tp: set},
+				{set: NewSet("\u0000\u0001\u0002\u0003\u0004", false), tp: set},
 			},
 		},
 		"\uFFFF\u0003abc",
@@ -559,35 +559,11 @@ var tests = []struct {
 		&node{
 			tp: and,
 			children: []*node{
-				{set: &Set{Items: []rune("\uFFFF")}, tp: set},
-				{set: &Set{Items: []rune(" ")}, tp: set},
+				{set: NewSet("\uFFFF", false), tp: set},
+				{set: NewSet(" ", false), tp: set},
 			},
 		},
 		"\uFFFF abc",
 		[]string{"\uFFFF "},
 	},
-}
-
-var expandTests = []struct {
-	set []rune
-	ans []rune
-}{
-	{[]rune("a-z"), []rune("abcdefghijklmnopqrstuvwxyz")},
-	{[]rune("A-Z"), []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ")},
-	{[]rune("\u0000-\u0005"), []rune("\u0000\u0001\u0002\u0003\u0004\u0005")},
-	// must output in unicode order
-	{[]rune("A-Za-z"), []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")},
-	{[]rune("A-Z0-9"), []rune("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")},
-	{[]rune("A-Za-z0-9"), []rune("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")},
-	{[]rune("a-z_"), []rune("_abcdefghijklmnopqrstuvwxyz")},
-	// '-' at the end is a considered a terminal
-	{[]rune("a-z-"), []rune("-abcdefghijklmnopqrstuvwxyz")},
-	// must remove duplicates
-	{[]rune("aaaa"), []rune("a")},
-	{[]rune("abc"), []rune("abc")},
-	{[]rune("a-bc"), []rune("abc")},
-	{[]rune(""), []rune("")},
-	{[]rune("a-za-z"), []rune("abcdefghijklmnopqrstuvwxyz")},
-	// escapes
-	{[]rune(`\s\n\t`), []rune("\t\n ")},
 }

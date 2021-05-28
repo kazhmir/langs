@@ -9,7 +9,7 @@ import (
 // Thompson's construction
 func createAtmt(n *node) *automaton {
 	if n == nil { // empty set
-		return NewAtmt(&Set{Items: []rune{}})
+		return NewAtmt(NewSet("", false))
 	}
 	out := &automaton{start: &state{}, acc: &state{}}
 	if n.tp == set {

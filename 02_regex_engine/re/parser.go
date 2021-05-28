@@ -2,7 +2,6 @@ package re
 
 import (
 	"log"
-	"sort"
 )
 
 type nodeType int
@@ -77,7 +76,7 @@ func (p *parser) unread() {
 
 func (p *parser) run(s []token) *node {
 	if len(s) == 0 {
-		return &node{set: &Set{Items: []rune{}}}
+		return &node{set: NewSet("", false)}
 	}
 	p.i = 0
 	p.inp = s
@@ -159,10 +158,8 @@ func (p *parser) term() *node {
 		r := p.word.val
 		p.next()
 		return &node{
-			set: &Set{
-				Items: []rune{r},
-			},
-			tp: set,
+			set: NewSet(string(r), false),
+			tp:  set,
 		}
 	}
 	if p.word.tp == empty {
@@ -177,16 +174,16 @@ func (p *parser) term() *node {
 
 func (p *parser) set() *node {
 	p.path += "set:" + p.word.String() + "\n"
-	out := &node{set: &Set{Items: []rune{}}, tp: set}
+	out := &node{set: NewSet("", false), tp: set}
 	if p.word.val == '^' && p.word.tp == ope {
 		out.set.Negated = true
 		p.next()
 	}
 
-	s := runeSlice{}
+	items := map[rune]struct{}{}
 	// the only operator expected here is ']'
 	for ; p.word.tp != ope; p.next() {
-		s = append(s, p.item()...)
+		items = union(items, p.item())
 	}
 	if p.word.val == ']' {
 		p.next() // discards ']'
@@ -194,13 +191,11 @@ func (p *parser) set() *node {
 		log.Fatalf("unexpected operator %c in set", p.word.val)
 	}
 
-	ordered := rmDuplicates(s)
-	sort.Sort(&ordered)
-	out.set.Items = ordered
+	out.set.Items = items
 	return out
 }
 
-func (p *parser) item() runeSlice {
+func (p *parser) item() map[rune]struct{} {
 	p.path += "item:" + p.word.String() + "\n"
 	first := p.word.val
 	p.next()
@@ -213,22 +208,20 @@ func (p *parser) item() runeSlice {
 		return nil
 	}
 	p.unread()
-	return runeSlice{first}
+	return map[rune]struct{}{
+		first: struct{}{},
+	}
 }
 
-func runeRange(a, b rune) []rune {
+func runeRange(a, b rune) map[rune]struct{} {
 	if a > b {
-		c := a
+		hold := a
 		a = b
-		b = c
+		b = hold
 	}
-	output := make([]rune, b-a)
-	for i, c := 0, a; c <= b; i, c = i+1, c+1 {
-		if i < len(output) {
-			output[i] = c
-			continue
-		}
-		output = append(output, c)
+	output := make(map[rune]struct{}, b-a)
+	for c := a; c <= b; c++ {
+		output[c] = struct{}{}
 	}
 	return output
 }

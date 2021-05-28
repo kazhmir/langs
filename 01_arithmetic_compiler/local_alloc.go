@@ -118,16 +118,22 @@ func (alc *Allocator) Ensure(op *Operand, res *Resources) int {
 		return v
 	}
 	pReg := alc.Alloc(op.Data, res)
-	if op.Type == tARGU {
+	switch op.Type {
+	case tNUMB:
+		alc.out += fmt.Sprintf("\tmov\t%s, %v\n", x64Reg[pReg], op.Data)
+		return pReg
+	case tARGU:
 		offset := 16 + 8*LangArgToIndex(op.Data)
 		alc.out += fmt.Sprintf("\tmov\t%s, [rbp + %v]\n", x64Reg[pReg], offset)
 		return pReg
+	case tREGI:
+		if v, ok := alc.Address[op.Data]; ok {
+			alc.out += fmt.Sprintf("\tmov\t%s, [rbp - %v]\n", x64Reg[pReg], v)
+			return pReg
+		}
+		panic("We lost a needed value!")
 	}
-	if v, ok := alc.Address[op.Data]; ok {
-		alc.out += fmt.Sprintf("\tmov\t%s, [rbp - %v]\n", x64Reg[pReg], v)
-		return pReg
-	}
-	panic("Something went wrong")
+	panic("Allocator.Ensure: This Shouldn't execute!!!")
 }
 
 /* IsNeeded performs a linear scan through the input instructions
@@ -196,21 +202,16 @@ Floating point exception. Note that we don't use the value on RDX, we're just cl
 so we don't need to allocate and therefore we don't need to free at the end.
 */
 func (alc *Allocator) GenDiv(ins *Instr, res *Resources) {
-	const rax, rdx = 0, 3
-	alc.EspecEnsure(ins.a, rax, res) // ensure A is in rax, regardless of it's type
-	alc.EnsureFree(rdx, res)         // ensure rdx is free
+	const rax, rbx, rdx = 0, 1, 3
 
+	alc.EspecEnsure(ins.a, rax, res)                                    // ensure A is in rax, regardless of it's type
+	alc.EnsureFree(rdx, res)                                            // ensure rdx is free
 	alc.out += fmt.Sprintf("\txor\t%s, %s\n", x64Reg[rdx], x64Reg[rdx]) // make sure rdx is zeroed
-	pReg := alc.Ensure(ins.b, res)
-	if pReg < 0 { // ins.b is a number
-		reg := alc.Alloc(ins.b.Data, res) // idiv requires it to be in a register
-		alc.out += fmt.Sprintf("\tmov\t%s, %s\n", x64Reg[reg], ins.b.Data)
-		alc.out += fmt.Sprintf("\tidiv\t%s\n", x64Reg[reg])
-		res.Free(reg) // literals are not needed
-	} else {
-		alc.out += fmt.Sprintf("\tidiv\t%s\n", x64Reg[pReg])
-		alc.FreeIfNotNeeded(ins.b, pReg, res)
-	}
+
+	alc.EspecEnsure(ins.b, rbx, res) // must not be in rax or rdx, here using rbx is suboptimal, but works
+	alc.out += fmt.Sprintf("\tidiv\t%s\n", x64Reg[rbx])
+
+	alc.FreeIfNotNeeded(ins.b, rbx, res)
 	res.Location[ins.c.Data] = rax
 	res.Value[rax] = ins.c.Data
 }
@@ -221,23 +222,29 @@ uses the RAX and RDX registers as the result
 */
 func (alc *Allocator) EspecEnsure(op *Operand, pReg int, res *Resources) {
 	vRegOld := alc.EnsureFree(pReg, res)
-	if op.Type == tNUMB {
-		alc.out += fmt.Sprintf("\tmov\t%s, %v\t\n", x64Reg[pReg], op.Data)
-		return
-	}
-	// here op.Data is a virtual register
 	if vRegOld == op.Data {
 		return
 	}
-	if pRegOld, ok := res.Location[op.Data]; ok {
-		alc.out += fmt.Sprintf("\tmov\t%s, %s\n", x64Reg[pReg], x64Reg[pRegOld])
+	switch op.Type {
+	case tNUMB:
+		alc.out += fmt.Sprintf("\tmov\t%s, %v\t\n", x64Reg[pReg], op.Data)
 		return
-	}
-	if offset, ok := alc.Address[op.Data]; ok {
-		alc.out += fmt.Sprintf("\tmov\t%s, [rbp - %v]\n", x64Reg[pReg], offset)
+	case tARGU:
+		offset := 16 + 8*LangArgToIndex(op.Data)
+		alc.out += fmt.Sprintf("\tmov\t%s, [rbp + %v]\n", x64Reg[pReg], offset)
 		return
+	case tREGI:
+		if pRegOld, ok := res.Location[op.Data]; ok { // if it is in a physical register
+			alc.out += fmt.Sprintf("\tmov\t%s, %s\n", x64Reg[pReg], x64Reg[pRegOld])
+			return
+		}
+		if offset, ok := alc.Address[op.Data]; ok { // if it is in the stack
+			alc.out += fmt.Sprintf("\tmov\t%s, [rbp - %v]\n", x64Reg[pReg], offset)
+			return
+		}
 	}
 	fmt.Printf("This shouldn't execute %#v\n", op)
+	panic("Oops")
 }
 
 /* EnsureFree ensures that the physical register is free,
