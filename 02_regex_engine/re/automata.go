@@ -142,7 +142,7 @@ func createID(in []*state) string {
 /*removes ε and impossible transitions*/
 func rmEmpty(trs []transition) (out []transition) {
 	for _, tr := range trs {
-		if tr.set != nil && len(tr.set.Items) > 0 {
+		if tr.set != nil && tr.set.IsNotEmpty() {
 			out = append(out, tr)
 		}
 	}
@@ -170,6 +170,7 @@ func powerSet(prev *map[string]*state, starters ...*state) *state {
 		}
 		eSt.trans = append(eSt.trans, tr)
 	}
+	eSt.trans = rmEmpty(eSt.trans)
 
 	return eSt
 }
@@ -188,7 +189,7 @@ func intersectAll(trans []transition) map[*Set][]*state {
 			for j, jTr := range trans {
 				if i != j { // not itself
 					sect := finalSect.intersect(jTr.set)
-					if len(sect.Items) > 0 {
+					if sect.IsNotEmpty() {
 						finalSect = sect
 						toRemove = append(toRemove, j)
 						states = append(states, jTr.next)
@@ -205,7 +206,7 @@ func intersectAll(trans []transition) map[*Set][]*state {
 		}
 	}
 	for i := range trans {
-		if len(trans[i].set.Items) > 0 {
+		if trans[i].set.IsNotEmpty() {
 			out[trans[i].set] = []*state{trans[i].next}
 		}
 	}

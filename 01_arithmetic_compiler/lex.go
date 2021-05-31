@@ -18,7 +18,7 @@ func LexStr(s string) []*lexeme {
 
 const (
 	Tnum lexType = iota
-	Tcla
+	Targ
 	Tope
 	Teof
 )
@@ -29,7 +29,7 @@ const eof = utf8.RuneError
 var printMap = map[lexType]string{
 	Tnum: "int",
 	Tope: "ope",
-	Tcla: "arg",
+	Targ: "arg",
 	Teof: "EOF",
 }
 
@@ -115,7 +115,7 @@ func any(l *Lexer) lexState {
 		return any
 	case '$':
 		l.accept("123456789")
-		l.emit(Tcla)
+		l.emit(Targ)
 		return any
 	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		l.unread()
@@ -134,9 +134,6 @@ func any(l *Lexer) lexState {
 
 func number(l *Lexer) lexState {
 	l.acceptRun("0123456789")
-	if l.accept(".") {
-		l.acceptRun("0123456789")
-	}
 	l.emit(Tnum)
 	return any
 }

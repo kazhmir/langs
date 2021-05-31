@@ -125,7 +125,7 @@ func (p *Parser) Factor() *node {
 }
 
 func (p *Parser) Num() *node {
-	if p.word.tp == Tnum || p.word.tp == Tcla {
+	if p.word.tp == Tnum || p.word.tp == Targ {
 		n := newNode(p.word)
 		p.next()
 		return n

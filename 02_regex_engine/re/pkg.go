@@ -21,6 +21,56 @@ type Machine struct {
 	Syntax  map[string]Action
 }
 
+func (m *Machine) String() string {
+	dt := &map[*state]int{}
+	m.Start.Enum(dt)
+	return m.Pattern + "\n" + prettyPrint(dt) + "\n"
+}
+
+//Run creates a machine Head and runs the string through the automaton.
+func (m *Machine) Run(txt io.RuneReader) error {
+	return nil
+}
+
+//Run creates a machine Head and runs the string through the automaton.
+func (m *Machine) RunStr(str string) error {
+	txt := strings.NewReader(str)
+	return m.Run(txt)
+}
+
+type Match struct {
+	S          string
+	Start, End int
+	act        Action
+}
+
+func (m *Match) String() string {
+	return fmt.Sprintf("%v:%v{\"%v\", %v}", m.Start, m.End, m.S, m.act)
+}
+
+type Head struct {
+	Curr []*state
+	set  map[*state]struct{}
+}
+
+func (h *Head) Consume(r rune) {
+	add := []*state{}
+	for _, st := range h.Curr {
+		if st.act != nil { // is accepting state
+
+		}
+		next := st.move(r)
+		if next != nil {
+			if _, ok := h.set[next]; !ok {
+				add = append(add, next)
+				h.set[next] = struct{}{}
+			}
+		}
+	}
+}
+
+func (h *Head) Match() {}
+
 /*BuildOne returns a machine for a single pattern and action.
  */
 func BuildOne(pattern string, act Action) *Machine {
@@ -59,200 +109,6 @@ func Build(syntax map[string]Action) *Machine {
 	}
 }
 
-//Run creates a machine Head and runs the string through the automaton.
-func (m *Machine) Run(txt io.RuneReader) error {
-	h := &manyHeads{start: m.Start, hs: []*Head{}}
-	var err error
-	var val rune
-	var stop bool
-	for err == nil && !stop {
-		val, _, err = txt.ReadRune()
-		stop = h.Consume(val)
-	}
-	if err != io.EOF {
-		return err
-	}
-	return nil
-}
-
-//Run creates a machine Head and runs the string through the automaton.
-func (m *Machine) RunStr(str string) error {
-	txt := strings.NewReader(str)
-	return m.Run(txt)
-}
-
-// Debug creates a machine that is able to step through every state of the automaton
-// Press ENTER to procede to next steps.
-func Debug(pattern string, inputStr string) error {
-	matches := make([]*Match, 0)
-	addMatch := func(m *Match) bool {
-		matches = append(matches, m)
-		return false
-	}
-	m := BuildOne(pattern, addMatch)
-
-	txt := strings.NewReader(inputStr)
-	mp := map[*state]int{}
-	m.Start.Enum(&mp)
-	fmt.Printf("%#v\n%v\n", m.Pattern, prettyPrint(&mp))
-	h := &manyHeads{start: m.Start, hs: []*Head{}}
-
-	var err error
-	var val rune
-	for err == nil {
-		fmt.Scanln()
-		val, _, err = txt.ReadRune()
-		h.Consume(val)
-		fmt.Printf("Matches: %v\n, Rune: %#v\n", matches, string(val))
-	}
-	fmt.Println()
-	if err != io.EOF {
-		return err
-	}
-	return nil
-}
-
-// FindIndex returns the start and end index if the pattern exists in string,
-// otherwise it returns -1 for both.
-func FindIndex(pattern, input string) (start, end int, err error) {
-	var match *Match
-	act := func(mat *Match) (stop bool) {
-		match = mat
-		return true
-	}
-	m := BuildOne(pattern, act)
-	txt := strings.NewReader(input)
-	err = m.Run(txt)
-
-	if match != nil {
-		return match.Start, match.End, err
-	}
-	return -1, -1, err
-}
-
-/*FindAllString returns all matching strings from the input.
- */
-func FindAllString(pattern string, txt io.RuneReader) ([]string, error) {
-	out := make([]string, 0)
-	act := func(mat *Match) bool {
-		out = append(out, mat.S)
-		return false
-	}
-	m := BuildOne(pattern, act)
-	err := m.Run(txt)
-	return out, err
-}
-
-type manyHeads struct {
-	index    int // number of calls to (*manyHeads).Consume(rune)
-	start    *state
-	hs       []*Head
-	bigMatch *Match
-}
-
-func (hs *manyHeads) NewHead(start int) {
-	h := &Head{
-		Start:    hs.start,
-		Current:  hs.start,
-		inpStart: start,
-		match:    &Match{},
-	}
-	hs.hs = append(hs.hs, h)
-}
-
-func (hs *manyHeads) KeepHeads(indexes []int) {
-	newHs := make([]*Head, len(indexes))
-	for i, index := range indexes {
-		newHs[i] = hs.hs[index]
-	}
-	hs.hs = newHs
-}
-
-func (hs *manyHeads) Consume(r rune) (stop bool) {
-	if st := hs.start.move(r); st != nil || hs.start.act != nil {
-		hs.NewHead(hs.index)
-	}
-	toKeep := []int{}
-	for i, h := range hs.hs {
-		if !h.Consume(r) {
-			if m := h.Match(); m != nil {
-				if m.act(m) {
-					return true
-				}
-			}
-		} else {
-			toKeep = append(toKeep, i)
-		}
-	}
-	hs.KeepHeads(toKeep)
-	hs.index++
-	return false
-}
-
-type Match struct {
-	S          string
-	Start, End int
-	act        Action
-}
-
-func (m *Match) String() string {
-	return fmt.Sprintf("%v:%v{\"%v\", %v}", m.Start, m.End, m.S, m.act)
-}
-
-/*Head is a machine Head that holds the current state of the automaton.
-Multiple heads can go through the same Machine concurrently.
-*/
-type Head struct {
-	CurrStr     string
-	currStrSize int
-	inpStart    int
-
-	match *Match
-
-	Start   *state
-	Current *state
-}
-
-/*Consume receives a rune, and runs that rune through the machine.
-It returns true if the rune is valid in the current state, false
-if the head entered an error state.
-*/
-func (h *Head) Consume(r rune) (ok bool) {
-	next := h.Current.move(r)
-	if next == nil {
-		ok = false
-	} else {
-		h.CurrStr += string(r)
-		h.currStrSize++
-		h.Current = next
-		ok = true
-	}
-	if h.Current.act != nil { // if accepting state
-		h.match.S = h.CurrStr
-		h.match.act = h.Current.act
-	}
-	return
-}
-
-func (h *Head) Match() *Match {
-	if h.match.act != nil {
-		h.match.Start = h.inpStart
-		h.match.End = h.inpStart + h.currStrSize
-		return h.match
-	}
-	return nil
-}
-
-/*Reset returns the machine head to the start
-of the Machine. It's used when the Head finds an error or
-accepting state.
-*/
-func (h *Head) Reset() {
-	h.CurrStr = ""
-	h.currStrSize = 0
-	h.Current = h.Start
-}
-
 func compile(pattern string, act Action) *automaton {
 	if act == nil {
 		log.Fatal("Action cannot be nil")
@@ -260,16 +116,17 @@ func compile(pattern string, act Action) *automaton {
 	tokens := lexString(pattern)
 	p := &parser{}
 	root := p.run(tokens)
+	fmt.Println(root)
 	atmt := createAtmt(root)
 	atmt.acc.act = act
 	mp := map[*state]int{}
 	atmt.start.Enum(&mp)
-	//	fmt.Println("thomps:", prettyPrint(&mp))
+	fmt.Println("thomps:", prettyPrint(&mp))
 
 	atmt.start = powerSet(&map[string]*state{}, atmt.start)
 	mp = map[*state]int{}
 	atmt.start.Enum(&mp)
-	//	fmt.Println("powerset:", prettyPrint(&mp))
+	fmt.Println("powerset:", prettyPrint(&mp))
 
 	return atmt
 }

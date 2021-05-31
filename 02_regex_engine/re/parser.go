@@ -90,24 +90,21 @@ func (p *parser) expr() *node {
 	p.path += "expr:" + p.word.String() + "\n"
 	n := p.str()
 	if n == nil {
-		log.Fatal("Wrong syntax for operator")
+		return n
 	}
 	if p.word.val == '|' && p.word.tp == ope {
 		leafs := []*node{n}
 		for p.word.val == '|' && p.word.tp == ope {
 			p.next()
-			leafs = append(leafs, p.str())
-		}
-		if p.word.val == ')' && p.word.tp == ope {
-			p.next()
+			next := p.str()
+			if next != nil {
+				leafs = append(leafs, next)
+			}
 		}
 		return &node{
 			tp:       or,
 			children: leafs,
 		}
-	}
-	if p.word.val == ')' && p.word.tp == ope {
-		p.next()
 	}
 	return n
 }
@@ -148,7 +145,9 @@ func (p *parser) term() *node {
 	p.path += "term:" + p.word.String() + "\n"
 	if p.word.val == '(' && p.word.tp == ope {
 		p.next()
-		return p.expr()
+		n := p.expr()
+		p.next() // discards (
+		return n
 	}
 	if p.word.val == '[' && p.word.tp == ope {
 		p.next()

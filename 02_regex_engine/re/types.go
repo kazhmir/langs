@@ -28,9 +28,9 @@ func (st *state) String() string {
 	format := "S%v{"
 	values := []interface{}{st.i}
 
-	if len(st.trans) > 0 {
+	for _, t := range st.trans {
 		format += "t: %v, "
-		values = append(values, st.trans)
+		values = append(values, t.String())
 	}
 	if st.act != nil {
 		format += "act: %v"
@@ -101,6 +101,14 @@ func (s *Set) Contains(c rune) bool {
 		return !s.Negated
 	}
 	return s.Negated
+}
+
+func (s *Set) IsNotEmpty() bool {
+	if len(s.Items) > 0 {
+		return true
+	}
+	return s.Negated
+	//return s.Negated || len(s.Items) > 0
 }
 
 func (s *Set) rm(other *Set) {

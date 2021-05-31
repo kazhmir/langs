@@ -103,7 +103,7 @@ func (cg *CodeGen) gen(n *node) *Operand {
 			Data: n.val,
 			Type: tNUMB,
 		}
-	case Tcla:
+	case Targ:
 		return &Operand{
 			Data: n.val,
 			Type: tARGU,

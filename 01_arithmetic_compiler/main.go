@@ -63,7 +63,7 @@ func solve(n *node) int {
 	switch n.tp {
 	case Tnum:
 		return StrToFloat(n.val)
-	case Tcla:
+	case Targ:
 		index := LangArgToIndex(n.val)
 		return StrToFloat(lang_args[index])
 	}

@@ -11,10 +11,12 @@ func main() {
 		out = append(out, mat.S)
 		return false
 	}
-	m := re.BuildOne("a", act)
-	err := m.RunStr("abcda")
-	fmt.Printf("%#v\n", out)
-	if err != nil {
-		panic(err)
-	}
+	m := re.BuildOne("ab|a[^]*c", act)
+	fmt.Println(m)
+	//
+	//	err := m.RunStr("abcda")
+	//	fmt.Printf("%#v\n", out)
+	//	if err != nil {
+	//		panic(err)
+	//	}
 }
