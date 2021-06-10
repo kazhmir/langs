@@ -53,10 +53,10 @@ func (st *state) Enum(prev *map[*state]int) {
 }
 
 func (st *state) addEmptyTr(next *state) {
-	st.trans = append(st.trans, transition{set: nil, next: next})
+	st.trans = append(st.trans, transition{epsilon: true, next: next})
 }
 
-func (st *state) addTr(set *Set, next *state) {
+func (st *state) addTr(set Set, next *state) {
 	tr := transition{set: set, next: next}
 	st.trans = append(st.trans, tr)
 }
@@ -111,7 +111,7 @@ func (s *Set) IsNotEmpty() bool {
 	//return s.Negated || len(s.Items) > 0
 }
 
-func (s *Set) rm(other *Set) {
+func (s *Set) rm(other Set) {
 	switch true {
 	case s.Negated && other.Negated:
 		s.Items = setDifference(other.Items, s.Items) // [^a] - [^b] = [b]
@@ -125,7 +125,7 @@ func (s *Set) rm(other *Set) {
 	}
 }
 
-func (s *Set) intersect(other *Set) *Set {
+func (s Set) intersect(other Set) *Set {
 	out := NewSet("", false)
 	switch true {
 	case s.Negated && other.Negated:
@@ -141,7 +141,7 @@ func (s *Set) intersect(other *Set) *Set {
 	return out
 }
 
-func (s *Set) add(other *Set) {
+func (s *Set) add(other Set) {
 	switch true {
 	case s.Negated && other.Negated:
 		s.Items = intersection(s.Items, other.Items) // [^a] ∪ [^b] = [^];	[^a] ∪ [^a] = [^a]; 	[^a] ∪ [^ab] = [^a];
@@ -158,7 +158,8 @@ func (s *Set) add(other *Set) {
 }
 
 type transition struct {
-	set  *Set
+	set  Set
+	epsilon bool
 	next *state
 }
 
@@ -168,7 +169,7 @@ func (tr transition) String() string {
 	if tr.next != nil {
 		next = "S" + fmt.Sprint(tr.next.i)
 	}
-	if tr.set != nil {
+	if !tr.epsilon {
 		set = tr.set.String()
 	}
 	return fmt.Sprintf("{%s -> %s}", set, next)
@@ -178,7 +179,7 @@ type automaton struct {
 	start, acc *state
 }
 
-func NewAtmt(s *Set) *automaton {
+func NewAtmt(s Set) *automaton {
 	start := &state{}
 	acc := &state{}
 	start.addTr(s, acc)

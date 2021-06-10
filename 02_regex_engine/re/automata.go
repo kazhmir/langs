@@ -1,7 +1,7 @@
 package re
 
 import (
-	//"fmt"
+	"fmt"
 	"sort"
 	"strconv"
 )
@@ -9,12 +9,16 @@ import (
 // Thompson's construction
 func createAtmt(n *node) *automaton {
 	if n == nil { // empty set
-		return NewAtmt(NewSet("", false))
+		return NewAtmt(*NewSet("", false))
 	}
 	out := &automaton{start: &state{}, acc: &state{}}
 	if n.tp == set {
-		out.start.addTr(n.set, out.acc)
+		out.start.addTr(*n.set, out.acc)
 		return out
+	}
+	if n.tp == emptyStr {
+    		out.start.addEmptyTr(out.acc)
+    		return out
 	}
 
 	atmts := []*automaton{}
@@ -48,8 +52,6 @@ func createAtmt(n *node) *automaton {
 /*
 	Returns a UNORDERED slice of states reachable through ε transitions
 	from the given state.
-	ε transitions are regarded as nil slices (which are illegal in the
-	context of this package)
 */
 func eFind(st *state) []*state {
 	out := make([]*state, 10)
@@ -66,7 +68,7 @@ func underEFind(st *state, prev *map[*state]int, out *[]*state, iter int) []*sta
 	(*prev)[st] = iter
 	iter++
 	for _, tr := range st.trans {
-		if tr.set == nil { // ε transition
+		if tr.epsilon { // ε transition
 			if _, ok := (*prev)[tr.next]; !ok {
 				for _, sta := range underEFind(tr.next, prev, out, iter) {
 					(*prev)[sta] = iter
@@ -142,7 +144,7 @@ func createID(in []*state) string {
 /*removes ε and impossible transitions*/
 func rmEmpty(trs []transition) (out []transition) {
 	for _, tr := range trs {
-		if tr.set != nil && tr.set.IsNotEmpty() {
+		if !tr.epsilon && tr.set.IsNotEmpty() {
 			out = append(out, tr)
 		}
 	}
@@ -155,18 +157,21 @@ func rmEmpty(trs []transition) (out []transition) {
 	use state.enum function to enumerate.
 */
 func powerSet(prev *map[string]*state, starters ...*state) *state {
+	//fmt.Printf("before eC %v\n", starters)
 	eSt, id := eClosure(starters...)
 	if st, ok := (*prev)[id]; ok { // if already computed the state
 		return st
 	}
 	(*prev)[id] = eSt
 
+	//fmt.Printf("%s before: %v\n", id, eSt.trans)
 	newTrans := intersectAll(eSt.trans)
+	//fmt.Printf("%s after: %v\ninter: %v\n", id, eSt.trans, newTrans)
 	eSt.trans = []transition{}
-	for set, states := range newTrans {
+	for _, sect := range newTrans {
 		tr := transition{
-			set:  set,
-			next: powerSet(prev, states...),
+			set:  sect.set,
+			next: powerSet(prev, sect.states...),
 		}
 		eSt.trans = append(eSt.trans, tr)
 	}
@@ -178,8 +183,8 @@ func powerSet(prev *map[string]*state, starters ...*state) *state {
 /*
 	This is an heuristic approach to get all the intersections between n sets,
 */
-func intersectAll(trans []transition) map[*Set][]*state {
-	out := map[*Set][]*state{}
+func intersectAll(trans []transition) []*inter {
+	out := []*inter{}
 	for done := true; done; { // we will iterate until there are no more intersections
 		done = false
 		for i := range trans {
@@ -190,7 +195,7 @@ func intersectAll(trans []transition) map[*Set][]*state {
 				if i != j { // not itself
 					sect := finalSect.intersect(jTr.set)
 					if sect.IsNotEmpty() {
-						finalSect = sect
+						finalSect = *sect
 						toRemove = append(toRemove, j)
 						states = append(states, jTr.next)
 						done = true
@@ -202,13 +207,17 @@ func intersectAll(trans []transition) map[*Set][]*state {
 					trans[x].set.rm(finalSect)
 				}
 			}
-			out[finalSect] = states
-		}
-	}
-	for i := range trans {
-		if trans[i].set.IsNotEmpty() {
-			out[trans[i].set] = []*state{trans[i].next}
+			out = append(out, &inter{finalSect, states})
 		}
 	}
 	return out
+}
+
+type inter struct {
+    set Set
+    states []*state
+}
+
+func (i *inter) String() string {
+    return fmt.Sprintf("{%s -> %s}", i.set.String(), createID(i.states))
 }

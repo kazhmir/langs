@@ -3,7 +3,6 @@ package re
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"testing"
 )
 
@@ -33,28 +32,18 @@ func TestParse(t *testing.T) {
 	}
 }
 
-func TestFindAllString(t *testing.T) {
-	fmt.Println("Testing FindAllStrings")
+func TestRecognizer(t *testing.T) {
+	fmt.Println("Testing Recognizer")
 	for _, tst := range tests {
 		name := fmt.Sprintf("%v:%v", tst.re, tst.input)
 		t.Run(name, func(t *testing.T) {
-			txt := strings.NewReader(tst.input)
-			//out, err := FindAllString(tst.re, txt)
-			out := make([]string, 0)
-			act := func(mat *Match) bool {
-				out = append(out, mat.S)
-				return false
-			}
+    		      	act := func(){}
 			m := BuildOne(tst.re, act)
-			err := m.Run(txt)
-			if err != nil {
-				fmt.Println(err)
-			}
-			if !reflect.DeepEqual(tst.matches, out) {
-				mp := map[*state]int{}
-				m.Start.Enum(&mp)
-				t.Errorf("%v\n\ngot %#v, wanted %#v", prettyPrint(&mp), out, tst.matches)
-				//t.Errorf("got %#v, wanted %#v", out, tst.matches)
+			ans := m.FullyMatches(tst.input)
+			if ans != tst.ans {
+				mp := &map[*state]int{}
+				m.Start.Enum(mp)
+				t.Errorf("failed to recognize\n%v", prettyPrint(mp))
 			}
 		})
 	}

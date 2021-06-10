@@ -1,15 +1,15 @@
-# DFA Extended Regular Expression Engine
+# RE to DFA
 
-This is a work in progress, the goal is to support features akin to those [specified in this paper](https://www.degruyter.com/document/doi/10.1515/comp-2017-0004/html). Except that sets will be used to express this constructs:
+This is a work in progress, it converts regular expressions accepting sets ("[^0-9]", "[a-z]") to DFA using a variation on the subset construction algorithm.
 
-- [^] -> Σ (the entire alphabet accepted by the automaton, in this engine it means the unicode range)
-- [^a] -> Σ-a
+Here's what you can do with sets:
+
+- [^] -> Σ (the entire alphabet accepted by the automaton, here it means the unicode range)
+- [^a] -> Σ-a (the entire alphabet excluding 'a')
 - [^abc] -> Σ-c-b-c
 - [] -> ø (empty set)
 - [abc] -> a|b|c
 - [a-z] -> a|b|c|...|x|y|z
-
-It should match the leftmost-longest alternative. So far the powerset algorithm only works for normal sets, negated ones form bad automatons here and there. The simulation of the DFA is also not finished.
 
 ## Regex Syntax
 

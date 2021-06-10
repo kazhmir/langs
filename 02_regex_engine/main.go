@@ -13,6 +13,12 @@ func main() {
 	}
 	m := re.BuildOne("ab|a[^]*c", act)
 	fmt.Println(m)
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
+	fmt.Println()
+	m = re.BuildOne("[^]*c", act)
+	fmt.Println(m)
 	//
 	//	err := m.RunStr("abcda")
 	//	fmt.Printf("%#v\n", out)

@@ -1,11 +1,11 @@
 package re
 
 var tests = []struct {
-	re      string
-	tokens  []token
-	root    *node
-	input   string
-	matches []string
+	re     string
+	tokens []token
+	root   *node
+	input  string
+	ans    bool
 }{
 	{"a",
 		[]token{
@@ -17,7 +17,7 @@ var tests = []struct {
 			tp:  set,
 		},
 		"abAbaa",
-		[]string{"a", "a", "a"},
+		false,
 	},
 	{"(a)",
 		[]token{
@@ -31,7 +31,7 @@ var tests = []struct {
 			tp:  set,
 		},
 		"a",
-		[]string{"a"},
+		true,
 	},
 	{"abc",
 		[]token{
@@ -48,8 +48,8 @@ var tests = []struct {
 				{set: NewSet("c", false), tp: set},
 			},
 		},
-		"aaaaaabcaaabac",
-		[]string{"abc"},
+		"abc",
+		true,
 	},
 	{`\s\t\n`,
 		[]token{
@@ -68,7 +68,7 @@ var tests = []struct {
 			},
 		},
 		"aaaa\ta\n aaa \t\n",
-		[]string{" \t\n"},
+		false,
 	},
 	{"a|b|c",
 		[]token{
@@ -87,8 +87,8 @@ var tests = []struct {
 				{set: NewSet("c", false), tp: set},
 			},
 		},
-		"azzzbczzzbza",
-		[]string{"a", "b", "c", "b", "a"},
+		"abc",
+		false,
 	},
 	{"ab|ac",
 		[]token{
@@ -118,8 +118,8 @@ var tests = []struct {
 				},
 			},
 		},
-		"abacacbaaab",
-		[]string{"ab", "ac", "ac", "ab"},
+		"ab",
+		true,
 	},
 	{"a*", []token{
 		{val: 'a', tp: char},
@@ -132,8 +132,8 @@ var tests = []struct {
 				{set: NewSet("a", false), tp: set},
 			},
 		},
-		"aaaabc",
-		[]string{"aaaa", "", ""},
+		"aaaa",
+		true,
 	},
 	{"ab*",
 		[]token{
@@ -154,8 +154,8 @@ var tests = []struct {
 				},
 			},
 		},
-		"aabbabaaa",
-		[]string{"aab", "ab", "aaa"},
+		"abbbb",
+		true,
 	},
 	{"a*b*",
 		[]token{
@@ -182,8 +182,8 @@ var tests = []struct {
 				},
 			},
 		},
-		"aabbabaaa",
-		[]string{"aabb", "ab", "aaa"},
+		"aaaaabbbbb",
+		true,
 	},
 	{"a|b*",
 		[]token{
@@ -205,8 +205,8 @@ var tests = []struct {
 				},
 			},
 		},
-		"aabbabaaa",
-		[]string{"a", "a", "bb", "a", "b", "a", "a", "a"},
+		"bbb",
+		true,
 	},
 	{"(a|b)*|c", []token{
 		{val: '(', tp: ope},
@@ -237,8 +237,8 @@ var tests = []struct {
 				{set: NewSet("c", false), tp: set},
 			},
 		},
-		"acaacbbcbcc",
-		[]string{"a", "c", "aa", "c", "bb", "c", "b", "c", "c"},
+		"ababababababab",
+		true,
 	},
 	{"[a-z]",
 		[]token{
@@ -250,8 +250,8 @@ var tests = []struct {
 			{val: eof, tp: end},
 		},
 		&node{set: NewSet("abcdefghijklmnopqrstuvwxyz", false), tp: set},
-		"abcdZABC",
-		[]string{"a", "b", "c", "d"},
+		"z",
+		true,
 	},
 	{`[\t\n\s]`,
 		[]token{
@@ -263,8 +263,8 @@ var tests = []struct {
 			{val: eof, tp: end},
 		},
 		&node{set: NewSet("\n\t ", false), tp: set},
-		"aaaa\taaaa\n a a \n",
-		[]string{"\t", "\n", " ", " ", " ", "\n"},
+		" ",
+		true,
 	},
 	{"[a-z]|[A-Z]",
 		[]token{
@@ -288,8 +288,8 @@ var tests = []struct {
 				{set: NewSet("ABCDEFGHIJKLMNOPQRSTUVWXYZ", false), tp: set},
 			},
 		},
-		"aAbBcC",
-		[]string{"a", "A", "b", "B", "c", "C"},
+		"Z",
+		true,
 	},
 	{"[A-Z][a-z]*",
 		[]token{
@@ -318,8 +318,8 @@ var tests = []struct {
 				},
 			},
 		},
-		"aAbBcC",
-		[]string{"a", "A", "b", "B", "c", "C"},
+		"Aabcabcasd",
+		true,
 	},
 	{`\s[a-z ]*`,
 		[]token{
@@ -345,8 +345,8 @@ var tests = []struct {
 				},
 			},
 		},
-		"  abc , abc a",
-		[]string{"  abc ", " abc a"},
+		" a a a a a a",
+		true,
 	},
 	{"(a)|(c)",
 		[]token{
@@ -366,8 +366,8 @@ var tests = []struct {
 				{set: NewSet("c", false), tp: set},
 			},
 		},
-		"aaacc",
-		[]string{"a", "a", "a", "c", "c"},
+		"c",
+		true,
 	},
 	{"a[^a-z]*",
 		[]token{
@@ -393,8 +393,8 @@ var tests = []struct {
 				},
 			},
 		},
-		"aaaZZZ",
-		[]string{"a", "a", "aZZZ"},
+		"aABGCDF",
+		true,
 	},
 	{`a[a-z^]*`,
 		[]token{
@@ -420,8 +420,8 @@ var tests = []struct {
 				},
 			},
 		},
-		"aaaZZZ^^",
-		[]string{"a", "a", "aZZZ^^"},
+		"aaa^a^",
+		true,
 	},
 	{`a|\e`,
 		[]token{
@@ -437,8 +437,8 @@ var tests = []struct {
 				{tp: emptyStr},
 			},
 		},
-		"abbaab",
-		[]string{"a", "", "", "a", "a", ""},
+		"",
+		true,
 	},
 	{`a|[]`,
 		[]token{
@@ -455,8 +455,8 @@ var tests = []struct {
 				{set: NewSet("", false), tp: set},
 			},
 		},
-		"abbaab",
-		[]string{"a", "a", "a"},
+		"a",
+		true,
 	},
 	{`[a-z]*\s\*`,
 		[]token{
@@ -483,8 +483,8 @@ var tests = []struct {
 				{set: NewSet("*", false), tp: set},
 			},
 		},
-		" *ab *baab",
-		[]string{" *", "ab *"},
+		"asbaasbda *",
+		true,
 	},
 	{"([A-Z]|[a-z])*",
 		[]token{
@@ -516,8 +516,8 @@ var tests = []struct {
 				},
 			},
 		},
-		"AaBbCc_+,",
-		[]string{"A", "a", "B", "b", "C", "c"},
+		"AbcvVVDVaaaCDCD",
+		true,
 	},
 	{"\uFFFF",
 		[]token{
@@ -528,8 +528,8 @@ var tests = []struct {
 			set: NewSet("\uFFFF", false),
 			tp:  set,
 		},
-		"\uFFFFabc",
-		[]string{"\uFFFF"},
+		"\uFFFF",
+		true,
 	},
 	{"\uFFFF[\u0000-\u0004]", []token{
 		{val: '\uFFFF', tp: char},
@@ -547,8 +547,8 @@ var tests = []struct {
 				{set: NewSet("\u0000\u0001\u0002\u0003\u0004", false), tp: set},
 			},
 		},
-		"\uFFFF\u0003abc",
-		[]string{"\uFFFF\u0003"},
+		"\uFFFF\u0003",
+		true,
 	},
 	{"\uFFFF\\s",
 		[]token{
@@ -563,7 +563,7 @@ var tests = []struct {
 				{set: NewSet(" ", false), tp: set},
 			},
 		},
-		"\uFFFF abc",
-		[]string{"\uFFFF "},
+		"\uFFFF ",
+		true,
 	},
 }
