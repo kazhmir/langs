@@ -6,17 +6,9 @@ import (
 )
 
 func main() {
-	out := []string{}
-	act := func(mat *re.Match) bool {
-		out = append(out, mat.S)
-		return false
-	}
+	act := func(){}
 	m := re.BuildOne("ab|a[^]*c", act)
 	fmt.Println(m)
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
-	fmt.Println()
 	m = re.BuildOne("[^]*c", act)
 	fmt.Println(m)
 	//

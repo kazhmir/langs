@@ -1,0 +1,13 @@
+Program = { Block }.
+Block = id "{" {Instr} "}" Branching ".".
+
+Instr = id ":" Type Operand {"," Operand} ["->" id].
+Branching = If | GoTo | Ret. 
+
+GoTo = "goto" id.
+Ret = "ret" [Operand].
+If = "if" ":" Type Operand "?" SwOption {"," SwOption}.
+SwOption = Literal "->" id.
+
+Operand = id | Literal.
+Literal = int | string | bool.
