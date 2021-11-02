@@ -1,0 +1,18 @@
+
+start {
+	alloc:int -> a
+	set:int 1 -> a
+
+	alloc:int -> counter
+	set:int 1 -> counter
+
+	alloc:bool temp0
+	cmpLess:int 5, counter -> temp0
+} if:bool temp0? true -> loop, false -> end.
+
+loop {
+	mult:int a, counter -> a
+	cmpLess:int 5, counter -> temp0
+} if:bool temp0? true -> loop, false -> end.
+
+end {} ret a.

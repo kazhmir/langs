@@ -398,7 +398,7 @@ func number(st *State) *ir.Node {
 		Text:  Selected(st),
 		Line:  st.line,
 		Col:   st.col,
-		NType: T.Num,
+		NType: T.Int,
 	}
 }
 
@@ -410,6 +410,8 @@ func identifier(st *State) *ir.Node {
 		tp = T.IF
 	case "goto":
 		tp = T.GOTO
+	case "ret":
+		tp = T.RET
 	case "true", "false":
 		tp = T.Bool
 	default:

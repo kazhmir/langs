@@ -12,7 +12,7 @@ const (
 	Code
 	Branches
 
-	Num
+	Int
 	String
 	Bool
 	Id
@@ -38,7 +38,8 @@ var tostring = map[NodeType]string{
 	Instr:         "Instr",
 	Operand:       "Operand",
 	Variable:      "Variable",
-	Num:           "Num",
+	Int:           "int",
+	Id:            "id",
 	String:        "String",
 	Bool:          "Bool",
 	GOTO:          "goto",

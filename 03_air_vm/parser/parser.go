@@ -19,7 +19,10 @@ func Program(st *State) *Node {
 
 // Block = id "{" {Instr} "}" Branching ".".
 func Block(st *State) *Node {
-	name := Expect(st, T.Id)
+	if st.Word.NType != T.Id {
+		return nil
+	}
+	name := Consume(st)
 	Expect(st, T.LEFTBRACKET)
 	instrs := &Node{
 		NType: T.Code,
@@ -104,7 +107,7 @@ func If(st *State) *Node {
 
 // SwOption = Literal "->" id.
 func SwOption(st *State) *Node {
-	lit := Expect(st, T.Num, T.String, T.Bool)
+	lit := Expect(st, T.Int, T.String, T.Bool)
 	arrow := Expect(st, T.ARROW)
 	id := Expect(st, T.Id)
 	arrow.Leafs = []*Node{lit, id}
@@ -113,14 +116,18 @@ func SwOption(st *State) *Node {
  
 // Operand = id | Literal.
 func Operand(st *State) *Node {
-	return Expect(st, T.Id, T.String, T.Num, T.Bool)
+	switch st.Word.NType {
+		case T.Id, T.String, T.Int, T.Bool:
+			return Consume(st)
+	}
+	return nil
 }
 
 func Type(st *State) *Node {
 	tp := Expect(st, T.Id)
 	switch tp.Text {
-		case "num":
-			tp.NType = T.Num
+		case "int":
+			tp.NType = T.Int
 		case "string":
 			tp.NType = T.String
 		case "bool":
