@@ -8,12 +8,25 @@ import (
 	"os"
 	"io/ioutil"
 	"strings"
+	"runtime/pprof"
 )
 
+var cpuprofile = flag.String("cpu", "", "write cpu profile to file")
 var wait = flag.Duration("t", 200*time.Millisecond, "Time between evals")
 
 func main() {
 	flag.Parse()
+
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+	        if err != nil {
+	            fmt.Println(err)
+	            os.Exit(1)
+	        }
+	        pprof.StartCPUProfile(f)
+	        defer pprof.StopCPUProfile()
+	}
+
 	args := flag.Args()
 	if len(args) != 1 {
 		fmt.Println("Takes one argument (the file)")
@@ -77,51 +90,61 @@ func noopPadding(length int) []byte {
 
 func Display(m *Machine) {
 	ClearGrid(m.G)
-	fmt.Print("\033[A")
-	fmt.Print("\033[A")
 	fmt.Printf("DP: %s, IP: %s                            \n",
 		string(Read(m.DPointer, &m.G)), string(Read(m.IPointer, &m.G)))
 	PrintStack(m.Stack, m.StackPtr)
+	out := ""
 	for y, row := range m.G {
 		for x, b := range row {
-			ColorPointers(m.DPointer, m.IPointer, x, y)
-			fmt.Printf("%s", string(b))
-			fmt.Print("\033[0m")
+			color := ColorPointers(m.DPointer, m.IPointer, x, y)
+			if color != "" {
+				out += color
+				out += fmt.Sprintf("%s", string(b))
+				out += "\033[0m"
+			} else {
+				out += fmt.Sprintf("%s", string(b))
+			}
 		}
-		fmt.Println()
+		out += "\n"
 	}
+	fmt.Print(out)
 }
 
-func ColorPointers(D, I Vector, x, y int) {
+func ColorPointers(D, I Vector, x, y int) string {
 	if x == D.X && y == D.Y && x == I.X && y == I.Y {
-		fmt.Print("\033[0;41m")
+		return "\033[0;41m"
 	} else if x == D.X && y == D.Y {
-		fmt.Print("\033[0;44m")
+		return "\033[0;44m"
 	} else if x == I.X && y == I.Y {
-		fmt.Print("\033[0;42m")
+		return "\033[0;42m"
 	}
+	return ""
 }
 
 func PrintStack(s []byte, ptr int) {
+	out := ""
 	for i, b := range s {
 		if i == ptr {
-			fmt.Print("\033[0;42m")
-			fmt.Printf("%X", b)
-			fmt.Print("\033[0m")
-			fmt.Print(" ")
+			out += "\033[0;42m"
+			out += fmt.Sprintf("%X", b)
+			out += "\033[0m"
+			out += " "
 		} else if i > ptr {
-			fmt.Print("  ")
+			out += "  "
 		} else {
-			fmt.Printf("%X ", b)
+			out += fmt.Sprintf("%X ", b)
 		}
 	}
-	fmt.Println()
+	fmt.Print(out + "\n")
 }
 
 func ClearGrid(g Grid) {
+	out := ""
 	for i := 0; i < len(g); i++ {
-		fmt.Print("\033[A")
+		out += "\033[A"
 	}
+	out += "\033[A" + "\033[A" // stack + pointers
+	fmt.Print(out)
 }
 
 type Vector struct {
