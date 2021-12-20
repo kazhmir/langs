@@ -1,6 +1,6 @@
 # SGTM
 
-SGTM may mean Sounds Good To Me, or Stack-Grid Turing Machine, you choose.
+SGTM means Stack-Grid Turing Machine.
 
 The included interpreter only works on linux, and was only tested on Fedora
 with Go 1.16.4.
@@ -25,12 +25,12 @@ a instruction vector and a data vector,
 both the program and data live in the same tape.
 
 The instruction vector has two components,
-a value and a orientation. The value is always
+a tuple (x,y) and a orientation. The value is always
 incremented in the direction of the orientation.
 
 Both vectors start at position (0,0) with orientation >.
 
-The machine Halts if it collides with the walls (when x or y is negative).
+The machine Halts if any vector collides with the walls (when x or y is negative).
 
 Hexadecimal (0-F) numbers push the respective value into the stack.
 
