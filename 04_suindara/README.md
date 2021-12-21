@@ -1,6 +1,8 @@
-# SGTM
+# Suindara
 
-SGTM means Stack-Grid Turing Machine.
+![Alt Text](./hello.gif)
+
+Suindara is a Brazillian name for Barn-Owls.
 
 The included interpreter only works on linux, and was only tested on Fedora
 with Go 1.16.4.
@@ -80,3 +82,6 @@ Eg: `go run . -t 200ms ./programs/hello.sgtm`
 ^ i:0iii:3wii:1r <
 ```
 
+## Bonus: Multiple copies!
+
+![Alt Text](./multcopy.gif)

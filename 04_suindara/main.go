@@ -1,30 +1,30 @@
 package main
 
 import (
-	"fmt"
-	"time"
 	"flag"
-	"os/exec"
-	"os"
+	"fmt"
 	"io/ioutil"
-	"strings"
+	"os"
+	"os/exec"
 	"runtime/pprof"
+	"strings"
+	"time"
 )
 
 var cpuprofile = flag.String("cpu", "", "write cpu profile to file")
-var wait = flag.Duration("t", 200*time.Millisecond, "Time between evals")
+var wait = flag.Duration("t", 5*time.Millisecond, "Time between evals")
 
 func main() {
 	flag.Parse()
 
 	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
-	        if err != nil {
-	            fmt.Println(err)
-	            os.Exit(1)
-	        }
-	        pprof.StartCPUProfile(f)
-	        defer pprof.StopCPUProfile()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
 	}
 
 	args := flag.Args()
@@ -39,8 +39,8 @@ func main() {
 	strdata := strings.Split(string(filedata), "\n")
 	grid := StrToGrid(strdata)
 	m := &Machine{
-		G: grid,
-		Stack: make([]byte, 10),
+		G:        grid,
+		Stack:    make([]byte, 10),
 		StackPtr: -1,
 	}
 
@@ -158,7 +158,7 @@ const (
 	Right Dir = iota
 	Down
 	Left
-	Up 
+	Up
 )
 
 func Run(m *Machine) {
@@ -332,10 +332,5 @@ func Top(m *Machine) byte {
 }
 
 func Rotate(m *Machine) {
-	m.IPointer.Ori = Dir((m.IPointer.Ori  +  1)%4)
+	m.IPointer.Ori = Dir((m.IPointer.Ori + 1) % 4)
 }
-
-
-
-
-
