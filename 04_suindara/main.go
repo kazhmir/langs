@@ -249,7 +249,7 @@ func Eval(m *Machine, instr byte) bool {
 
 	case '>':
 		m.IPointer.Ori = Right
-	case '!':
+	case 'v':
 		m.IPointer.Ori = Down
 	case '<':
 		m.IPointer.Ori = Left

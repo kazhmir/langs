@@ -12,7 +12,7 @@ with Go 1.16.4.
 ### Syntax
 
 ```
-^><! 0123
+^><v 0123
 -+*/ 4567
 rw:i 89AB 
 lm=~ CDEF 
@@ -39,14 +39,14 @@ Hexadecimal (0-F) numbers push the respective value into the stack.
 Arithmetic operators (*, /, +, -) pop two values from 
 the stack and pushes the result (`ab-` means `a-b`).
 
-'^', '<', '>' and '!' sets the orientation of the instruction vector
-('^' is up, '!' is down, '<' is left, '>' is right).
+'^', '<', '>' and 'v' sets the orientation of the instruction vector
+('^' is up, 'v' is down, '<' is left, '>' is right).
 
 'r' reads a value from the tape and pushes it in the stack,
 'w' pops a value from the stack and writes it to the tape.
 
 ':' pops a value from the stack and sets it as the orientation of the data pointer 
-(0 = >, 1 = !, 2 = <, 3 = ^),
+(0 = >, 1 = v, 2 = <, 3 = ^),
 'i' increments the data pointer.
 
 'l', 'm', '=' and '\~' all pop one value from the stack 
