@@ -13,6 +13,7 @@ import (
 
 var cpuprofile = flag.String("cpu", "", "write cpu profile to file")
 var wait = flag.Duration("t", 5*time.Millisecond, "Time between evals")
+var frameEvalRatio = flag.Int("f", 1, "Ratio between evals and displays")
 
 func main() {
 	flag.Parse()
@@ -69,7 +70,7 @@ func Normalize(grid *Grid) {
 	max := 0
 	for _, row := range *grid {
 		if max < len(row) {
-			max = len(row)
+			max = len(row) + 1
 		}
 	}
 	for i, row := range *grid {
@@ -93,17 +94,23 @@ func Display(m *Machine) {
 	fmt.Printf("DP: %s, IP: %s                            \n",
 		string(Read(m.DPointer, &m.G)), string(Read(m.IPointer, &m.G)))
 	PrintStack(m.Stack, m.StackPtr)
+	PrintGrid(m)
+}
+
+func PrintGrid(m *Machine) {
 	out := ""
 	for y, row := range m.G {
-		for x, b := range row {
-			color := ColorPointers(m.DPointer, m.IPointer, x, y)
-			if color != "" {
-				out += color
-				out += fmt.Sprintf("%s", string(b))
-				out += "\033[0m"
-			} else {
-				out += fmt.Sprintf("%s", string(b))
+		if m.DPointer.Y == y || m.IPointer.Y == y {
+			for x, b := range row {
+				color := ColorPointers(m.DPointer, m.IPointer, x, y)
+				if color != "" {
+					out += color + string(b) + "\033[0m"
+				} else {
+					out += string(b)
+				}
 			}
+		} else {
+			out += string(row)
 		}
 		out += "\n"
 	}
@@ -169,15 +176,20 @@ func Run(m *Machine) {
 	m.DPointer = Vector{X: 0, Y: 0, Ori: Right}
 	Normalize(&m.G)
 	Display(m)
+	var i int
 	for {
 		instr := Read(m.IPointer, &m.G)
 		if Eval(m, instr) {
-			fmt.Println("Halt Condition: Collided with the edge!")
 			break
 		}
 		time.Sleep(*wait)
-		Display(m)
+		if i % *frameEvalRatio == 0 {
+			Display(m)
+		}
+		i++
 	}
+	Display(m)
+	fmt.Println("Halted!")
 }
 
 func Read(v Vector, g *Grid) byte {
@@ -185,8 +197,8 @@ func Read(v Vector, g *Grid) byte {
 		*g = append(*g, make([]byte, 0))
 		Normalize(g)
 	}
-	if v.X >= len((*g)[0]) {
-		(*g)[0] = append((*g)[0], ' ')
+	if v.X >= len((*g)[v.Y]) {
+		(*g)[v.Y] = append((*g)[v.Y], ' ')
 		Normalize(g)
 	}
 	return (*g)[v.Y][v.X]
@@ -197,8 +209,8 @@ func Write(v Vector, g *Grid, data byte) {
 		*g = append(*g, make([]byte, 0))
 		Normalize(g)
 	}
-	if v.X >= len((*g)[0]) {
-		(*g)[0] = append((*g)[0], ' ')
+	if v.X >= len((*g)[v.Y]) {
+		(*g)[v.Y] = append((*g)[v.Y], ' ')
 		Normalize(g)
 	}
 	(*g)[v.Y][v.X] = data
