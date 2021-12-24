@@ -71,17 +71,17 @@ Eg: `go run . -t 200ms ./programs/hello.sgtm`
 ### Hello World
 
 ```
->1:i0: 89*w i 7A*1-w i 7A*6+w i 7A*6+w i 8A*1-w i 84*w i !
+>1:i0: 89*w i 7A*1-w i 7A*6+w i 7A*6+w i 8A*1-w i 84*w i v
              ^w+8*A6 i w+6*A7 i w+2*A8 i w-1*A8 i w+7*A8 <
 ```
 
 ### Self-copy
 
 ```
-> r1:iiw3:i      !
+> r1:iiw3:i      v
 ^ i:0iii:3wii:1r <
 ```
 
-## Bonus: Multiple copies!
+## Rule 110
 
-![Alt Text](./multcopy.gif)
+![Alt Text](./rule110.gif)
