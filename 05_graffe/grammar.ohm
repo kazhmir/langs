@@ -1,0 +1,58 @@
+Graffe {
+  Section
+  	= (Node)*
+  Node
+  	= "[" ident "]" (KeyValue (";")?)*
+  KeyValue
+  	= ident "=" Value
+  Value
+  	= ident | string | number | bool | "null" | Array
+  Array
+    = "{" (Value ("," Value)*)? "}"
+  bool
+  	= "true" | "false"
+  number
+  	= hexadecimal | binary | decimal
+  hexadecimal
+  	= "0x" hexDigit (hexDigit)*
+  
+  binary
+    = "0b" binDigit (binDigit)*
+  binDigit
+    = "0" | "1" | "_"
+  
+  decimal
+  	= ("+" | "-")? digit (decBody)* ("." (decBody)*)?
+  decBody
+    = digit | "_"
+  
+  string
+    = "\"" (insideStr)* "\"" 
+  insideStr
+    = ~("\"" | "\\") any
+      | escape
+    
+  escape
+   = "\\" ("n" | "t" | "\"" | "\\")
+    
+  ident  (an identifier)
+    = ~keyword idHead idBody*
+    
+  idHead
+    = ~(special | digit) any
+  idBody
+    = ~special any
+  special
+    = "[" |  "]" | ";" | "=" | "{" | "," | "}" | "\"" | "+" | "-" | "." | " "
+    
+  keyword
+  	= "true" | "false" | "null"
+    
+  comment
+    = "#" (~lineTerminator any)*
+    
+  space := lineTerminator | whitespace | comment
+  lineTerminator = "\n" | "\r"
+  whitespace
+    = " " | "\t"
+} 

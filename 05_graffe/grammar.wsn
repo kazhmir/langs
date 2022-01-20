@@ -1,0 +1,26 @@
+Graffe = {Node}.
+Node = "[" id "]" {KeyValue [";"]}.
+KeyValue = id "=" Value.
+Value = id | string | number | bool | "null" | Array.
+Array = "{" [Value {"," Value}] "}".
+
+bool = "true" | "false".
+
+string = "\"" {insideStr} "\"".
+insideStr = `[^\"\\]|\\\"|\\\\`.
+
+id = idStart {idBody}.
+idStart = `[^0-9\[\]\;\=\{\,\}\"\+\-\.]`.
+idBody = `[^\[\]\;\=\{\,\}\"\+\-\.]` 
+
+number = hexadecimal | binary | decimal.
+
+decimal = ["+" | "-"] decDigit {decBody} ["." {decBody}].
+decStart = `[0-9]`.
+decBody = `[0-9_]`.
+
+binary = "0b" binDigit {binDigit}.
+binDigit = "0" | "1" | "_".
+
+hexadecimal = "0x" hexDigit {hexDigit}.
+hexDigit = `[0-9A-Fa-f_]`.

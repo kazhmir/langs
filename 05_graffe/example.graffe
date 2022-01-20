@@ -1,0 +1,53 @@
+[node]
+name = "Root Node";
+left = child;
+right = child2;
+
+[child]
+name = "Left leaf of binary tree";
+[child2]
+name = "Right leaf of binary tree";
+
+[literals]
+array = {1, 2, 3, 4};
+bool = false;
+number = 1;
+
+#{
+#	"obj0": {"key1": "value", "key2":"value"},
+#	"obj1": {"key1": "value", "key2":"value"},
+#	"obj2": {"key1": "value", "key2":"value"},
+#}
+
+[root]
+items = {obj0, obj1, obj2};
+
+[obj0]
+key1 = "value";
+key2 = "value";
+
+[obj1]
+key1 = "value";
+key2 = "value";
+
+[obj2]
+key1 = "value";
+key2 = "value";
+
+
+# Genealogy Tree
+[Jane]
+mother = Jose
+father = Jonathan
+age = 17
+height = 172
+
+[Jonathan]
+age = 47
+height = 190
+children = {Jane}
+
+[Jose]
+age = 45
+height = 165
+children = {Jane}
