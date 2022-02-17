@@ -1,6 +1,6 @@
 # Introduction
 
-QQL is a non-relational database language
+QQL is a structured non-relational database language
 
 # DML
 
@@ -35,7 +35,7 @@ The above expression is equivalent to `select * from active_table where name lik
 ```
 
 The above expression is equivalent to `insert into active_table (name, bday) values ('Artur', '1999.09.26')`, since
-the table is known, and the columns are ordered, this can be shortened to: `+ 'Artur' '1999.09.26'`
+the table is known, and the columns are ordered, this can be shortened to: `+ "Artur" "1999.09.26"`
 
 ## DELETE
 
