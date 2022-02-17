@@ -206,10 +206,11 @@ QQL {
   TypeDef = "type" ident Type
   DataDefinition = ident ":" Type
   Type = ident | UnamedType
-  UnamedType = "{" TypeExpr "}"
+  UnamedType = "(" TypeExpr ")"
   TypeExpr = Concat  ("|" Concat)*
   Concat = (Range)+
-  Range = unit (".." unit)?
+  Range = Array (".." Array)?
+  Array = ("[" int "]")? unit
   unit = rune | int | float | string | ident
 
   op = "~" | "!~" | "=" | "<" | ">" | "<=" | ">=" | "!="
