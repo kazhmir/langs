@@ -174,6 +174,7 @@ QQL {
      | AlterTable
      | DropTable
      | TypeDef
+     | ""
   
   Select = Expr (OrderBy)?
   Update = "!" Expr "->" Data
