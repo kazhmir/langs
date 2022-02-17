@@ -111,27 +111,27 @@ You can assign names to types, but types can't be recursive in any way.
 
 Examples:
 ```
-type Byte     {0 .. 255}
-type Float32  {1.175494351e-38 .. 3.402823466e+38}
-type Status   {"Done" | "Canceled" | "Pending"}
-type Letter   {'a' .. 'z' | 'A' .. 'Z' }
-type NameChar {Letter | ' '}
-type Name     {[45]NameChar}
-type CodeName {Letter Letter Letter}
+type Byte     (0 .. 255)
+type Float32  (1.175494351e-38 .. 3.402823466e+38)
+type Status   ("Done" | "Canceled" | "Pending")
+type Letter   ('a' .. 'z' | 'A' .. 'Z' )
+type NameChar (Letter | ' ')
+type Name     ([45]NameChar)
+type CodeName (Letter Letter Letter)
 
-type Num {'0' .. '9'}
-type CPF {Num Num Num '.' Num Num Num '.' Num Num Num '-' Num Num}
+type Num ('0' .. '9')
+type CPF (Num Num Num '.' Num Num Num '.' Num Num Num '-' Num Num)
 
-type IsoDate {Num Num Num Num '.' Num Num '.' Num Num}
-type Year {-10000 .. 10000}
-type Month {1 .. 12}
-type Day {1 .. 31}
-type StrucDate { Year Month Day }
+type IsoDate (Num Num Num Num '.' Num Num '.' Num Num)
+type Year (-10000 .. 10000)
+type Month (1 .. 12)
+type Day (1 .. 31)
+type StrucDate ( Year Month Day )
 
-type RGB {Byte Byte Byte}
+type RGB (Byte Byte Byte)
 
-type Hex {'0' .. '9' | 'A' .. 'F'}
-type HexRGB {Hex Hex Hex Hex Hex Hex}
+type Hex ('0' .. '9' | 'A' .. 'F')
+type HexRGB (Hex Hex Hex Hex Hex Hex)
 ```
 
 ## CREATE TABLE
