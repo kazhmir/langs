@@ -28,6 +28,25 @@ name ~ "artur" & bday = "1999.09.26"
 
 The above expression is equivalent to `select * from active_table where name like '%artur%' and bday = '1999.09.26'`.
 
+### Operators
+
+| Operator   | Meaning           |
+|:----------:|:-----------------:|
+|    `~`     | Exists in         |
+|    `=`     | Equality          |
+|    `!=`    | Inequality        |
+|    `>`     | Greater           |
+|    `<`     | Smaller           |
+|    `=>`    | Greater or Equals |
+|    `<=`    | Smaller or Equals |
+
+The `=` operator can work with the `_` wildcard to ignore certain fields in a concatenation.
+Example:
+```
+Date = [1999 09 _]
+Color = [_ _ 255]
+```
+
 ## INSERT
 
 ```
@@ -56,6 +75,18 @@ Can also be shortened to:
 ```
 ! name~"Artur" bday="1999.09.26" -> "Guilherme" "2000.04.02"
 ```
+
+## Literals
+
+Primary literals are integers, floats and runes:
+- integer: `1`, `2`, `0x1`, `0b1101`
+- float: `1.0e-10`, `2.0`, `1.0e2`
+- rune: `'a'`, `'B'`
+
+Concatenations can be expressed using `[]` as in `name~['a' 'r' 't' 'u' 'r']`
+or using `""` in the case of rune concatenation `name~"artur"`
+
+Additionally, we have a wildcard literal `_`, that works only with the `=` operator.
 
 # DDL
 
@@ -127,4 +158,70 @@ alter TABLENAME -> ! height -> height:Int
 ## DROP TABLE
 ```
 drop TABLENAME
+```
+
+# Grammar
+
+```ohm
+QQL {
+  Command
+    = Select
+     | Update
+     | Insert
+     | Delete
+     | SetTable
+     | CreateTable
+     | AlterTable
+     | DropTable
+     | TypeDef
+  
+  Select = Expr (OrderBy)?
+  Update = "!" Expr "->" Data
+  Insert = "+" Data
+  Delete = "-" Expr
+  SetTable = "set" ident
+  CreateTable = "create" ident "->" (DataDefinition)*
+  AlterTable = "alter" ident "->" AlterOptions
+  AlterOptions = DeleteColumn | AddColumn | UpdateColumn
+  DeleteColumn = "-" (ident)*
+  AddColumn = "+" DataDefinition
+  UpdateColumn = "!" ident "->" DataDefinition
+
+  DropTable = "drop" ident
+    
+  Expr = AND ("|" AND)*
+  AND = Factor (("&")? Factor)*
+  Factor = Comp | Nested
+  Nested =  "(" Expr ")"
+  Comp = ident ("," ident)* op Value ("," Value)*
+  OrderBy = ("/\\" | "\\/") ident ("," ("/\\" | "\\/")? ident)*
+  
+  Data = Tagged | Untagged
+  Tagged = (KeyValuePair)*
+  Untagged = (Value)*
+  KeyValuePair = ident "=" Value
+  Value = rune | int | float | ConcatLit | string
+
+  TypeDef = "type" ident Type
+  DataDefinition = ident ":" Type
+  Type = ident | UnamedType
+  UnamedType = "{" TypeExpr "}"
+  TypeExpr = Concat  ("|" Concat)*
+  Concat = (Range)+
+  Range = unit (".." unit)?
+  unit = rune | int | float | string | ident
+
+  op = "~" | "!~" | "=" | "<" | ">" | "<=" | ">=" | "!="
+  ident  (an identifier) = letter alnum*
+  rune = "'" any "'"
+  int = digit+
+  float = digit* "." digit+
+  ConcatLit = "[" (Value)* "]"
+  
+  string = "\"" (insideStr)* "\"" 
+  insideStr 
+  = ~("\"" | "\\") any
+   | escape
+  escape = "\\" ("n" | "t" | "\"" | "\\")
+}
 ```
